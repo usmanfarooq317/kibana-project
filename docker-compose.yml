@@ -1,0 +1,107 @@
+version: "3.8"
+
+services:
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - elk-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.10.2
+    environment:
+      - ELASTICSEARCH_HOSTS=http://es:9200
+      # Remove credentials since security is disabled
+      - SERVER_HOST=0.0.0.0
+    depends_on:
+      - es
+    ports:
+      - "5601:5601"
+    networks:
+      - elk-network
+
+  fluent-bit:
+    image: fluent/fluent-bit:2.1.10  # Fixed: use existing version
+    volumes:
+    - ./fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+    - ./fluent-bit/parsers.conf:/fluent-bit/etc/parsers.conf:ro
+    - app1_logs:/var/log/app1
+    - app2_logs:/var/log/app2
+    - app3_logs:/var/log/app3
+    depends_on:
+    - es
+    ports:
+      - "2020:2020"  # For Fluent Bit monitoring
+    networks:
+      - elk-network
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - app1
+      - app2
+      - app3
+    networks:
+      - elk-network
+
+  app1:
+    build: ./app1
+    environment:
+      - APP_COLOR=blue
+      - APP_NAME=app1
+      - PORT=5001
+    volumes:
+      - app1_logs:/var/log/app1
+    expose:
+      - "5001"
+    networks:
+      - elk-network
+
+  app2:
+    build: ./app2
+    environment:
+      - APP_COLOR=red
+      - APP_NAME=app2
+      - PORT=5002
+    volumes:
+      - app2_logs:/var/log/app2
+    expose:
+      - "5002"
+    networks:
+      - elk-network
+
+  app3:
+    build: ./app3
+    environment:
+      - APP_COLOR=green
+      - APP_NAME=app3
+      - PORT=5003
+    volumes:
+      - app3_logs:/var/log/app3
+    expose:
+      - "5003"
+    networks:
+      - elk-network
+
+volumes:
+  esdata:
+  app1_logs:
+  app2_logs:
+  app3_logs:
+
+networks:
+  elk-network:
+    driver: bridge
