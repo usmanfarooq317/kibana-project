@@ -32,19 +32,21 @@ services:
       - elk-network
 
   fluent-bit:
-    image: fluent/fluent-bit:2.1.10  # Fixed: use existing version
+    image: fluent/fluent-bit:2.2.2  # Fixed: use existing version
     volumes:
     - ./fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
     - ./fluent-bit/parsers.conf:/fluent-bit/etc/parsers.conf:ro
     - app1_logs:/var/log/app1
     - app2_logs:/var/log/app2
     - app3_logs:/var/log/app3
+    - fluentbit_db:/fluent-bit/db
     depends_on:
     - es
     ports:
       - "2020:2020"  # For Fluent Bit monitoring
     networks:
       - elk-network
+    command: ["/fluent-bit/bin/fluent-bit", "-c", "/fluent-bit/etc/fluent-bit.conf", "-v"]
 
   nginx:
     build: ./nginx
@@ -101,6 +103,7 @@ volumes:
   app1_logs:
   app2_logs:
   app3_logs:
+  fluentbit_db:
 
 networks:
   elk-network:

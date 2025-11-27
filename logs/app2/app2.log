@@ -1,0 +1,4 @@
+{"timestamp": "2025-11-26T10:55:01.063694Z", "app": "app2", "color": "red", "event": "page_view", "host": "localhost"}
+{"timestamp": "2025-11-26T10:59:44.984619Z", "app": "app2", "color": "red", "event": "page_view", "host": "localhost"}
+{"timestamp": "2025-11-26T11:24:44.729837Z", "app": "app2", "color": "red", "event": "page_view", "host": "localhost"}
+{"timestamp": "2025-11-26T11:25:10.946551Z", "app": "app2", "color": "red", "event": "page_view", "host": "localhost"}
